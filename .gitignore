@@ -1,0 +1,3 @@
+tasks/*
+!tasks/example.txt
+old/
