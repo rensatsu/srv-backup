@@ -12,6 +12,8 @@ Example of the task file:
 @ENABLED=1
 @TASK=ExampleTask
 @PASSWORD=P4$$W0RD
+@EXECBEFORE=/opt/script.sh
+@EXECAFTER=/opt/cleanup.sh
 @PATHS
 /path/test/abc
 /path/test/def
@@ -20,10 +22,12 @@ Example of the task file:
 
 Description of fields:
 
-* `@ENABLED` = [0, 1]: 1 - task enabled, 0 - disabled.
-* `@TASK` = string: name of the task (only letters, numbers or underscores).
-* `@PASSWORD` = string: backup archive password.
-* `@PATHS` = section: after this line there should only be a list with paths to backup.
+* `@ENABLED` = **[0, 1]**: 1 - task enabled, 0 - disabled.
+* `@TASK` = **string**: name of the task (only letters, numbers or underscores).
+* `@PASSWORD` = **string**: backup archive password.
+* `@EXECBEFORE` = **string**: command to execute before starting backup (optional).
+* `@EXECAFTER` = **string**: command to execute after starting backup (optional).
+* `@PATHS` = **array of strings**: after this line there should only be a list with paths to backup.
 
 ## Decryption
 

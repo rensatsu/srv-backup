@@ -1,6 +1,8 @@
 @ENABLED=0
 @TASK=example
 @PASSWORD=P4$$w0rD
+@EXECBEFORE=/opt/script.sh
+@EXECAFTER=/opt/cleanup.sh
 @PATHS
 /home/path/1
 /etc/path/2

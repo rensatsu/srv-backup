@@ -27,6 +27,8 @@ def loadConfig(pathConfig):
 	taskPassword = ''
 	taskPaths = []
 	taskEnabled = False
+	taskExecBefore = ''
+	taskExecAfter = ''
 	
 	enabledRx = re.search("@ENABLED=([^\t\s\r\n]+)", configFile)
 
@@ -64,12 +66,24 @@ def loadConfig(pathConfig):
 		
 	if len(taskPaths) == 0:
 		raise ValueError("Paths list is empty")
+
+	execBeforeRx = re.search("@EXECBEFORE=([^\t\s\r\n]+)", configFile)
+
+	if execBeforeRx:
+		taskExecBefore = (execBeforeRx.group(1)).replace('\n', ' ').strip()
+
+	execAfterRx = re.search("@EXECAFTER=([^\t\s\r\n]+)", configFile)
+
+	if execAfterRx:
+		taskExecAfter = (execAfterRx.group(1)).replace('\n', ' ').strip()
 	
 	return {
-		'name'     : taskName,
-		'password' : taskPassword,
-		'paths'    : taskPaths,
-		'enabled'  : taskEnabled
+		'name'       : taskName,
+		'password'   : taskPassword,
+		'paths'      : taskPaths,
+		'enabled'    : taskEnabled,
+		'execbefore' : taskExecBefore,
+		'execafter'  : taskExecAfter
 	}
 # / loadConfig
 
@@ -122,12 +136,17 @@ def createBackup(task):
 	print ("  Backup paths:", task['paths'])
 	
 	# Writing status file
-	print ("> Starting saver backup")
+	print ("> Starting backup")
 	fileWrite(varStatus, bkpTask)
 	fileAppend(varStatus, varTimestamp)
 	
 	# Check if backup file already exists, if yes -> skip
 	if os.path.isfile(bkpTarget) == False:
+		# Exec pre-backup script
+		if task['execbefore'] != '':
+			print ("> Executing pre-backup script")
+			os.system(task['execbefore'])
+
 		# Creating backup
 		cmd = (\
 			'/bin/tar -f - -c --files-from={0} | ' + \
@@ -155,6 +174,10 @@ def createBackup(task):
 	if os.path.isfile(varStatus): os.remove(varStatus) # Removing status file
 	if os.path.isfile(bkpTarget): os.remove(bkpTarget) # Removing backup target file
 	if os.path.isfile(bkpPaths):  os.remove(bkpPaths)  # Removing paths list file
+
+	if task['execafter'] != '':
+		print ("> Executing after-backup script")
+		os.system(task['execafter'])
 # / createBackup
 
 # Is dropbox-uploader installed?
@@ -162,17 +185,34 @@ if os.path.isfile(appDropboxUploader) == False:
 	print ("Dropbox Uplaoder is not installed")
 	sys.exit(1)
 	
-# Reading config list
-configList = glob.glob(varScriptDir + "/tasks/*.txt")
-
-for configFile in configList:
+# If started with argument - it's a config name
+if sys.argv[1]:
+	print ("Starting single-config mode")
 	try:
+		configFile = ("{}/tasks/{}.txt").format(
+			varScriptDir, sys.argv[1]
+		)
+
 		config = loadConfig(configFile)
-		# print (config)
 		
 		if config['enabled'] == True:
 			createBackup(config)
 		else:
 			print ("* Task defined in file '{}' is disabled".format(configFile))
 	except ValueError as err:
-		print ('Exception:', err)
+		print('Exception:', err)
+else:
+	# Reading config list
+	configList = glob.glob(varScriptDir + "/tasks/*.txt")
+
+	for configFile in configList:
+		try:
+			config = loadConfig(configFile)
+			# print (config)
+			
+			if config['enabled'] == True:
+				createBackup(config)
+			else:
+				print ("* Task defined in file '{}' is disabled".format(configFile))
+		except ValueError as err:
+			print ('Exception:', err)
