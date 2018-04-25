@@ -60,7 +60,8 @@ def loadConfig(pathConfig):
 	pathsRx = re.search("@PATHS\n(.*)", configFile, re.M)
 
 	if pathsRx:
-		taskPaths = configFile[pathsRx.start(1):].split('\n')
+		tmp = configFile[pathsRx.start(1):].split('\n')
+		taskPaths = [elem for elem in tmp if len(elem) > 0]
 	else:
 		raise ValueError("Paths are not defined")
 		
@@ -186,8 +187,8 @@ if os.path.isfile(appDropboxUploader) == False:
 	sys.exit(1)
 	
 # If started with argument - it's a config name
-if sys.argv[1]:
-	print ("Starting single-config mode")
+if len(sys.argv) > 1 and len(sys.argv[1]) > 0:
+	print ("NOTICE: Starting single-config mode")
 	try:
 		configFile = ("{}/tasks/{}.txt").format(
 			varScriptDir, sys.argv[1]
