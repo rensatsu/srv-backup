@@ -2,6 +2,16 @@
 
 Script for creating backups and uploading to Dropbox.
 
+## Dependencies
+
+This script depends on:
+* [Dropbox Uploader](https://github.com/andreafabrizi/Dropbox-Uploader)
+
+Installation script:
+```
+git clone https://github.com/andreafabrizi/Dropbox-Uploader.git /opt/dropbox-uploader/
+```
+
 ## Task Files
 
 This script is using task files located in

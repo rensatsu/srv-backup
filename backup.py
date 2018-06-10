@@ -151,7 +151,7 @@ def createBackup(task):
 		# Creating backup
 		cmd = (\
 			'/bin/tar -f - -c --files-from={0} | ' + \
-			'/usr/bin/gpg --symmetric --yes --passphrase {1} --compress-algo 0 --cipher-algo AES256 --no-use-agent ' + \
+			'/usr/bin/gpg --symmetric --yes --passphrase {1} --compress-algo 0 --cipher-algo AES256 --no-tty --batch ' + \
 			'> {2}').format(
 				bkpPaths,
 				bkpPassword,
