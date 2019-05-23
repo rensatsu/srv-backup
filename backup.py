@@ -20,7 +20,7 @@ varHostname = socket.gethostname()
 def loadConfig(pathConfig):
 	if os.path.isfile(pathConfig) == False:
 		raise ValueError("Config file is unreadable", pathConfig)
-		
+
 	configFile = open(pathConfig, 'r').read()
 
 	taskName = ''
@@ -29,7 +29,7 @@ def loadConfig(pathConfig):
 	taskEnabled = False
 	taskExecBefore = ''
 	taskExecAfter = ''
-	
+
 	enabledRx = re.search("@ENABLED=([^\t\s\r\n]+)", configFile)
 
 	if enabledRx:
@@ -43,7 +43,7 @@ def loadConfig(pathConfig):
 		taskName = taskRx.group(1)
 	else:
 		raise ValueError("Task name is not defined")
-		
+
 	if len(taskName) == 0:
 		raise ValueError("Task name is empty")
 
@@ -53,10 +53,10 @@ def loadConfig(pathConfig):
 		taskPassword = passwordRx.group(1)
 	else:
 		raise ValueError("Password is not defined")
-		
+
 	if len(taskPassword) == 0:
 		raise ValueError("Password is empty")
-		
+
 	pathsRx = re.search("@PATHS\n(.*)", configFile, re.M)
 
 	if pathsRx:
@@ -64,7 +64,7 @@ def loadConfig(pathConfig):
 		taskPaths = [elem for elem in tmp if len(elem) > 0]
 	else:
 		raise ValueError("Paths are not defined")
-		
+
 	if len(taskPaths) == 0:
 		raise ValueError("Paths list is empty")
 
@@ -77,7 +77,7 @@ def loadConfig(pathConfig):
 
 	if execAfterRx:
 		taskExecAfter = (execAfterRx.group(1)).replace('\n', ' ').strip()
-	
+
 	return {
 		'name'       : taskName,
 		'password'   : taskPassword,
@@ -90,7 +90,7 @@ def loadConfig(pathConfig):
 
 def isRoot():
 	username = getpass.getuser()
-	
+
 	return username == "root"
 # / isRoot
 
@@ -107,40 +107,40 @@ def fileAppend(file, text):
 	outfile.write("\n")
 	outfile.close()
 # / fileWrite
-	
+
 def createBackup(task):
 	# Script variables
 	varToday = time.strftime("%Y%m%d", time.gmtime())
 	varTimestamp = int(time.time())
-	
+
 	# Backup variables
 	bkpTask = task['name']
 	bkpPassword = task['password']
-	appDropboxPath = '/Backup/{0}/{1}'.format(varHostname, bkpTask)
+	appDropboxPath = '/{0}/{1}'.format(varHostname, bkpTask)
 	bkpName = '{0}_backup_{1}.tar.gpg'.format(bkpTask, varToday)
 	bkpTarget = '/tmp/{0}'.format(bkpName)
 	bkpPaths = '{0}-paths.txt'.format(bkpTarget)
-	
+
 	# Checking for root
 	if isRoot() == False:
 		raise ValueError("Script has to work under 'root' user")
-		
+
 	print ("* Starting backup for task:", task['name'])
-	
+
 	# Writing paths list to file
 	fileWrite(bkpPaths, '\n'.join(task['paths']))
-	
+
 	# Pre-check completed
 	print ("> Pre-check completed")
 	print ("  Task: {0}".format(bkpTask))
 	print ("  Target: {0}".format(bkpTarget))
 	print ("  Backup paths:", task['paths'])
-	
+
 	# Writing status file
 	print ("> Starting backup")
 	fileWrite(varStatus, bkpTask)
 	fileAppend(varStatus, varTimestamp)
-	
+
 	# Check if backup file already exists, if yes -> skip
 	if os.path.isfile(bkpTarget) == False:
 		# Exec pre-backup script
@@ -157,20 +157,20 @@ def createBackup(task):
 				bkpPassword,
 				bkpTarget
 			).replace('\n', ' ').strip()
-			
+
 		os.system(cmd)
 	else:
 		print ("NOTICE: backup target archive already exists, skipping...")
-	
+
 	# Backup should exists as of now
 	if os.path.isfile(bkpTarget) == False:
 		raise ValueError("Backup target is not available, possibly backup creation failed")
-	
+
 	print ("> Uploading")
 	os.system('{0} delete {1}'.format(appDropboxUploader, appDropboxPath))
 	os.system('{0} mkdir {1}'.format(appDropboxUploader, appDropboxPath))
 	os.system('{0} upload {1} {2}/{3}'.format(appDropboxUploader, bkpTarget, appDropboxPath, bkpName))
-	
+
 	print ("> Finishing")
 	if os.path.isfile(varStatus): os.remove(varStatus) # Removing status file
 	if os.path.isfile(bkpTarget): os.remove(bkpTarget) # Removing backup target file
@@ -185,7 +185,7 @@ def createBackup(task):
 if os.path.isfile(appDropboxUploader) == False:
 	print ("Dropbox Uplaoder is not installed")
 	sys.exit(1)
-	
+
 # If started with argument - it's a config name
 if len(sys.argv) > 1 and len(sys.argv[1]) > 0:
 	print ("NOTICE: Starting single-config mode")
@@ -195,7 +195,7 @@ if len(sys.argv) > 1 and len(sys.argv[1]) > 0:
 		)
 
 		config = loadConfig(configFile)
-		
+
 		if config['enabled'] == True:
 			createBackup(config)
 		else:
@@ -210,7 +210,7 @@ else:
 		try:
 			config = loadConfig(configFile)
 			# print (config)
-			
+
 			if config['enabled'] == True:
 				createBackup(config)
 			else:
