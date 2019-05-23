@@ -10,7 +10,11 @@ This script depends on:
 Installation script:
 ```
 git clone https://github.com/andreafabrizi/Dropbox-Uploader.git /opt/dropbox-uploader/
+cd /opt/dropbox-uploader/
+./dropbox_uploader.sh space
 ```
+
+When creating a new API application, you should choose "App folder" access!
 
 ## Task Files
 
