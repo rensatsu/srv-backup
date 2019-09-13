@@ -6,15 +6,28 @@ Script for creating backups and uploading to Dropbox.
 
 This script depends on:
 * [Dropbox Uploader](https://github.com/andreafabrizi/Dropbox-Uploader)
+* RenCloud Notification Service - optional (internal service, source is not availabe)
 
-Installation script:
+Dropbox Uploader Installation script:
 ```
 git clone https://github.com/andreafabrizi/Dropbox-Uploader.git /opt/dropbox-uploader/
 cd /opt/dropbox-uploader/
 ./dropbox_uploader.sh space
 ```
 
-When creating a new API application, you should choose "App folder" access!
+When creating a new Dropbox API application, you should choose "App folder" access!
+
+## Running
+
+Add a crontab entry to run this script:
+```
+0 4 * * * /usr/bin/python3 /opt/scripts/backup-srv/backup.py
+```
+
+If you are using a notification service:
+```
+0 4 * * * /bin/bash /opt/scripts/backup-srv/backup.sh
+```
 
 ## Task Files
 
