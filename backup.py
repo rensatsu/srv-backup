@@ -117,7 +117,7 @@ def createBackup(task):
 	bkpTask = task['name']
 	bkpPassword = task['password']
 	appDropboxPath = '/{0}/{1}'.format(varHostname, bkpTask)
-	bkpName = '{0}_backup_{1}.tar.gpg'.format(bkpTask, varToday)
+	bkpName = '{0}_backup_{1}.tar.gz.gpg'.format(bkpTask, varToday)
 	bkpTarget = '/tmp/{0}'.format(bkpName)
 	bkpPaths = '{0}-paths.txt'.format(bkpTarget)
 
@@ -150,7 +150,7 @@ def createBackup(task):
 
 		# Creating backup
 		cmd = (\
-			'/bin/tar -f - -c --files-from={0} | ' + \
+			'/bin/tar -f - -c -z --files-from={0} | ' + \
 			'/usr/bin/gpg --symmetric --yes --passphrase {1} --compress-algo 0 --cipher-algo AES256 --no-tty --batch ' + \
 			'> {2}').format(
 				bkpPaths,
