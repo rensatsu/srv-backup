@@ -5,6 +5,7 @@ Script for creating backups and uploading to Dropbox.
 ## Dependencies
 
 This script depends on:
+* Python 3.6
 * [Dropbox Uploader](https://github.com/andreafabrizi/Dropbox-Uploader)
 * RenCloud Notification Service - optional (internal service, source is not availabe)
 
