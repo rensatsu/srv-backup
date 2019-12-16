@@ -3,7 +3,7 @@
 # Script for creating backups and uploading to Dropbox     #
 # ##########################################################
 
-import os.path
+import os
 import re
 import sys
 import time
@@ -16,6 +16,11 @@ appDropboxUploader = "/opt/dropbox-uploader/dropbox_uploader.sh"
 varScriptDir = os.path.dirname(os.path.realpath(__file__))
 varStatus = "/tmp/backup_status.txt"
 varHostname = socket.gethostname()
+
+# Print to stderr
+def eprint(*args, **kwargs):
+	print(*args, file=sys.stderr, **kwargs)
+# / eprint
 
 def loadConfig(pathConfig: str):
 	if os.path.isfile(pathConfig) == False:
@@ -125,19 +130,28 @@ def createBackup(task):
 	if isRoot() == False:
 		raise ValueError("Script has to work under 'root' user")
 
-	print ("* Starting backup for task:", task["name"])
+	print("* Starting backup for task:", task["name"])
+
+	# Filter out non-existant paths
+	taskPathsFiltered = []
+	for path in task["paths"]:
+		try:
+			if os.stat(path):
+				taskPathsFiltered.append(path)
+		except FileNotFoundError as err:
+			eprint(f"* WARNING: Path '{path}' is not available")
 
 	# Writing paths list to file
-	fileWrite(bkpPaths, "\n".join(task["paths"]))
+	fileWrite(bkpPaths, "\n".join(taskPathsFiltered))
 
 	# Pre-check completed
-	print ("> Pre-check completed")
-	print (f"  Task: {bkpTask}")
-	print (f"  Target: {bkpTarget}")
-	print ("  Backup paths:", task["paths"])
+	print(f"> Pre-check completed")
+	print(f"  Task: {bkpTask}")
+	print(f"  Target: {bkpTarget}")
+	print(f"  Backup paths:", task["paths"])
 
 	# Writing status file
-	print ("> Starting backup")
+	print("> Starting backup")
 	fileWrite(varStatus, bkpTask)
 	fileAppend(varStatus, varTimestamp)
 
@@ -145,7 +159,7 @@ def createBackup(task):
 	if os.path.isfile(bkpTarget) == False:
 		# Exec pre-backup script
 		if task["execbefore"] != "":
-			print ("> Executing pre-backup script")
+			print("> Executing pre-backup script")
 			os.system(task["execbefore"])
 
 		# Creating backup
@@ -158,35 +172,35 @@ def createBackup(task):
 
 		os.system(cmd)
 	else:
-		print ("NOTICE: backup target archive already exists, skipping...")
+		eprint("NOTICE: backup target archive already exists, skipping...")
 
 	# Backup should exists as of now
 	if os.path.isfile(bkpTarget) == False:
 		raise ValueError("Backup target is not available, possibly backup creation failed")
 
-	print ("> Uploading")
+	print("> Uploading")
 	os.system(f"{appDropboxUploader} delete {appDropboxPath}")
 	os.system(f"{appDropboxUploader} mkdir {appDropboxPath}")
 	os.system(f"{appDropboxUploader} upload {bkpTarget} {appDropboxPath}/{bkpName}")
 
-	print ("> Finishing")
+	print("> Finishing")
 	if os.path.isfile(varStatus): os.remove(varStatus) # Removing status file
 	if os.path.isfile(bkpTarget): os.remove(bkpTarget) # Removing backup target file
 	if os.path.isfile(bkpPaths):  os.remove(bkpPaths)  # Removing paths list file
 
 	if task["execafter"] != "":
-		print ("> Executing after-backup script")
+		print("> Executing after-backup script")
 		os.system(task["execafter"])
 # / createBackup
 
 # Is dropbox-uploader installed?
 if os.path.isfile(appDropboxUploader) == False:
-	print ("Dropbox Uploader is not installed")
+	eprint("Dropbox Uploader is not installed")
 	sys.exit(1)
 
 # If started with argument - it's a config name
 if len(sys.argv) > 1 and len(sys.argv[1]) > 0:
-	print ("NOTICE: Starting single-config mode")
+	print("NOTICE: Starting single-config mode")
 	try:
 		configFile = f"{varScriptDir}/tasks/{sys.argv[1]}.txt"
 		config = loadConfig(configFile)
@@ -194,9 +208,9 @@ if len(sys.argv) > 1 and len(sys.argv[1]) > 0:
 		if config["enabled"] == True:
 			createBackup(config)
 		else:
-			print (f"* Task defined in file '{configFile}' is disabled")
+			print(f"* Task defined in file '{configFile}' is disabled")
 	except ValueError as err:
-		print("Exception:", err)
+		eprint("Exception:", err)
 else:
 	# Reading config list
 	configList = glob.glob(varScriptDir + "/tasks/*.txt")
@@ -204,11 +218,11 @@ else:
 	for configFile in configList:
 		try:
 			config = loadConfig(configFile)
-			# print (config)
+			# print(config)
 
 			if config["enabled"] == True:
 				createBackup(config)
 			else:
-				print (f"* Task defined in file '{configFile}' is disabled")
+				print(f"* Task defined in file '{configFile}' is disabled")
 		except ValueError as err:
-			print ("Exception:", err)
+			eprint("Exception:", err)
