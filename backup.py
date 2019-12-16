@@ -158,7 +158,7 @@ def createBackup(task):
 	# Check if backup file already exists, if yes -> skip
 	if os.path.isfile(bkpTarget) == False:
 		# Exec pre-backup script
-		if task["execbefore"] != "":
+		if task["execbefore"].strip():
 			print("> Executing pre-backup script")
 			os.system(task["execbefore"])
 
@@ -188,7 +188,7 @@ def createBackup(task):
 	if os.path.isfile(bkpTarget): os.remove(bkpTarget) # Removing backup target file
 	if os.path.isfile(bkpPaths):  os.remove(bkpPaths)  # Removing paths list file
 
-	if task["execafter"] != "":
+	if task["execafter"].strip():
 		print("> Executing after-backup script")
 		os.system(task["execafter"])
 # / createBackup
